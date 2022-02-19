@@ -24,7 +24,7 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	compileOnly 'org.projectlombok:lombok:1.18.22'
 	annotationProcessor 'org.projectlombok:lombok:1.18.22'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	//annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
 	testCompileOnly 'org.projectlombok:lombok:1.18.22'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'

@@ -1,9 +1,9 @@
 package com.fidev.socialspringlogin.security.oauth2;
 
-import com.fidev.socialspringlogin.config.AppProperties;
 import com.fidev.socialspringlogin.exception.BadRequestException;
 import com.fidev.socialspringlogin.security.TokenProvider;
 import com.fidev.socialspringlogin.util.CookieUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -20,18 +20,18 @@ import static com.fidev.socialspringlogin.security.oauth2.HttpCookieOAuth2Author
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+    @Value("${app.oauth.authorizedRedirectUris}")
+    private String[] authorizedRedirectUris;
 
     private final TokenProvider tokenProvider;
-    private final AppProperties appProperties;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 
     OAuth2AuthenticationSuccessHandler(
-            TokenProvider tokenProvider, AppProperties appProperties,
+            TokenProvider tokenProvider,
             HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository
     ) {
         this.tokenProvider = tokenProvider;
-        this.appProperties = appProperties;
         this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
     }
 
@@ -73,14 +73,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private boolean isAuthorizedRedirectUri(String uri) {
         URI clientRedirectUri = URI.create(uri);
 
-        return appProperties.getOauth2().getAuthorizedRedirectUris()
-                .stream()
-                .anyMatch(authorizedRedirectUri -> {
-                    // Only validate host and port. Let the clients use different paths if they want to
-                    URI authorizedURI = URI.create(authorizedRedirectUri);
-                    return authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
-                            && authorizedURI.getPort() == clientRedirectUri.getPort();
-                });
+        boolean authorized = false;
+        for (String redirectUri : authorizedRedirectUris) {
+            URI authorizedURI = URI.create(redirectUri);
+            if (
+                    authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
+                            && authorizedURI.getPort() == clientRedirectUri.getPort()
+            ) authorized = true;
+        }
+        return authorized;
     }
 
 }
